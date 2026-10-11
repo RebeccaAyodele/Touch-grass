@@ -2,7 +2,6 @@ import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 import {
   ChallengeRepository,
-  UserRepository,
   CompletionRepository,
   SpaceRepository,
 } from '@touch-grass/db';
@@ -19,9 +18,9 @@ import {
   isValidStatusTransition,
   validateEvidenceRequirements,
   calculateFinalScore,
-  calculateLevel,
 } from '@touch-grass/game';
 import { env } from '../config/env.js';
+import { CompletionAlreadyClaimedError, persistChallengeCompletion } from '../services/completionService.js';
 
 const aiProvider = createAIProvider({
   provider: env.AI_PROVIDER,
@@ -142,7 +141,7 @@ export class ChallengeController {
         return;
       }
 
-      // Check idempotency: Has user already completed this challenge?
+      // Return a clear conflict for requests made after a completion is committed.
       const existingCompletion = await CompletionRepository.findByChallengeAndUser(id, user.id);
       if (existingCompletion) {
         res.status(409).json({ error: 'You have already completed and claimed rewards for this challenge.' });
@@ -189,40 +188,25 @@ export class ChallengeController {
         evaluation,
       });
 
-      // Update user XP and calculate new level
-      const currentXp = user.totalXp;
-      const newTotalXp = currentXp + scoreResult.finalXp;
-      const newLevel = calculateLevel(newTotalXp);
-      const leveledUp = newLevel > user.level;
-
-      await UserRepository.updateXpAndLevel(user.id, scoreResult.finalXp, newLevel);
-
-      // Transition challenge to completed
-      await ChallengeRepository.updateStatus(id, 'completed', 'completedAt');
-
-      // Persist completion record
-      const completion = await CompletionRepository.create(
-        {
-          challengeId: id,
-          userId: user.id,
-          spaceId: challengeDoc.spaceId ?? null,
-          valid: scoreResult.valid,
-          baseXp: scoreResult.baseXp,
-          bonusXp: scoreResult.bonusXp,
-          finalXp: scoreResult.finalXp,
-          feedback: scoreResult.feedback,
-          evaluation,
-          evidence,
-        },
-        {
-          newTotalXp,
-          newLevel,
-          leveledUp,
-        }
-      );
+      const completion = await persistChallengeCompletion({
+        challengeId: id,
+        userId: user.id,
+        spaceId: challengeDoc.spaceId ?? null,
+        valid: scoreResult.valid,
+        baseXp: scoreResult.baseXp,
+        bonusXp: scoreResult.bonusXp,
+        finalXp: scoreResult.finalXp,
+        feedback: scoreResult.feedback,
+        evaluation,
+        evidence,
+      });
 
       res.status(200).json({ completion });
     } catch (err) {
+      if (err instanceof CompletionAlreadyClaimedError) {
+        res.status(409).json({ error: err.message });
+        return;
+      }
       next(err);
     }
   }

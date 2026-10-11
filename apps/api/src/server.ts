@@ -32,7 +32,8 @@ async function bootstrap() {
     process.on('SIGINT', shutdown);
     process.on('SIGTERM', shutdown);
   } catch (err: any) {
-    console.error('[Server Bootstrap Error]:', err.message);
+    console.error('[Server Bootstrap Error]:', err);
+    console.error('[Server Error Cause]:', err.cause);
     if (env.NODE_ENV === 'development') {
       console.warn('⚠️ Starting Express server in standalone / test mode without DB connection.');
       app.listen(env.API_PORT, () => {

@@ -18,7 +18,7 @@ export async function ensureDatabaseIndexes(): Promise<void> {
 
   // Users indexes
   await users.createIndex({ email: 1 }, { unique: true });
-  await users.createIndex({ username: 1 }, { unique: true });
+  await users.createIndex({ username: 1 }, { unique: true, collation: { locale: 'en', strength: 2 }, name: 'username_case_insensitive_unique' });
   await users.createIndex({ touchGrassId: 1 }, { unique: true });
   await users.createIndex({ totalXp: -1 });
 

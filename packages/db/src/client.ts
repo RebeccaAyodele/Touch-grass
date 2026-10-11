@@ -1,4 +1,9 @@
-import { MongoClient, Db } from 'mongodb';
+
+import { ClientSession, MongoClient, Db } from 'mongodb';
+import * as dns from 'node:dns';
+
+// Keep this temporarily because your default DNS had issues.
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 let client: MongoClient | null = null;
 let dbInstance: Db | null = null;
@@ -8,9 +13,6 @@ export interface DatabaseConfig {
   dbName: string;
 }
 
-/**
- * Initializes and connects the singleton MongoDB client.
- */
 export async function connectDatabase(config: DatabaseConfig): Promise<Db> {
   if (dbInstance) {
     return dbInstance;
@@ -21,29 +23,48 @@ export async function connectDatabase(config: DatabaseConfig): Promise<Db> {
   }
 
   client = new MongoClient(config.uri, {
-    maxPoolSize: 20,
-    minPoolSize: 2,
-    serverSelectionTimeoutMS: 5000,
-  });
+  maxPoolSize: 20,
+  minPoolSize: 2,
+  serverSelectionTimeoutMS: 15000,
+  autoSelectFamily: false,
+});
 
   await client.connect();
+
   dbInstance = client.db(config.dbName || 'touch_grass');
+  console.log('[Database] Connected successfully.');
+
   return dbInstance;
 }
 
-/**
- * Returns the active Db instance, or throws if not connected.
- */
 export function getDb(): Db {
   if (!dbInstance) {
     throw new Error('Database is not initialized. Call connectDatabase() first.');
   }
+
   return dbInstance;
 }
 
-/**
- * Gracefully closes the database connection.
- */
+/** Runs related database writes as one all-or-nothing transaction. */
+export async function withDatabaseTransaction<T>(
+  operation: (session: ClientSession) => Promise<T>
+): Promise<T> {
+  if (!client) {
+    throw new Error('Database is not initialized. Call connectDatabase() first.');
+  }
+
+  const session = client.startSession();
+  try {
+    const result = await session.withTransaction(() => operation(session));
+    if (result === undefined) {
+      throw new Error('Database transaction completed without a result.');
+    }
+    return result;
+  } finally {
+    await session.endSession();
+  }
+}
+
 export async function disconnectDatabase(): Promise<void> {
   if (client) {
     await client.close();

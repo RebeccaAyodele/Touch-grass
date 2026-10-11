@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { ClientSession } from 'mongodb';
 import { getCompletionsCollection } from '../collections.js';
 import { CompletionDoc, CompletionResponse } from '@touch-grass/shared';
 
@@ -25,20 +25,25 @@ function toCompletionResponse(
 }
 
 export class CompletionRepository {
-  static async findByChallengeAndUser(challengeId: string, userId: string): Promise<CompletionDoc | null> {
-    return getCompletionsCollection().findOne({ challengeId, userId });
+  static async findByChallengeAndUser(
+    challengeId: string,
+    userId: string,
+    session?: ClientSession
+  ): Promise<CompletionDoc | null> {
+    return getCompletionsCollection().findOne({ challengeId, userId }, { session });
   }
 
   static async create(
     completionData: Omit<CompletionDoc, '_id' | 'completedAt'>,
-    userStats: { newTotalXp: number; newLevel: number; leveledUp: boolean }
+    userStats: { newTotalXp: number; newLevel: number; leveledUp: boolean },
+    session?: ClientSession
   ): Promise<CompletionResponse> {
     const docToInsert = {
       ...completionData,
       completedAt: new Date(),
     };
 
-    const result = await getCompletionsCollection().insertOne(docToInsert as any);
+    const result = await getCompletionsCollection().insertOne(docToInsert as any, { session });
 
     return toCompletionResponse(
       {

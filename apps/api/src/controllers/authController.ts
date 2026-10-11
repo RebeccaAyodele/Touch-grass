@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { MongoServerError } from 'mongodb';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
@@ -23,6 +24,13 @@ export class AuthController {
       const existingEmail = await UserRepository.findByEmail(email);
       if (existingEmail) {
         res.status(409).json({ error: 'An account with this email already exists.' });
+        return;
+      }
+
+      const existingUsername = await UserRepository.findByUsername(username);
+
+      if (existingUsername) {
+        res.status(409).json({ error: 'That username is already taken.' });
         return;
       }
 
@@ -51,6 +59,18 @@ export class AuthController {
         token,
       });
     } catch (err) {
+      if (err instanceof MongoServerError && err.code === 11000) {
+        if (err.keyPattern?.username) {
+          res.status(409).json({ error: 'That username is already taken.' });
+          return;
+        }
+
+        if (err.keyPattern?.email) {
+          res.status(409).json({ error: 'An account with this email already exists.' });
+          return;
+        }
+      }
+
       next(err);
     }
   }

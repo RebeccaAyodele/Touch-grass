@@ -26,6 +26,7 @@ export const AISourceSchema = z.enum(AI_SOURCES);
 export const UserRegisterSchema = z.object({
   username: z
     .string()
+    .trim()
     .min(3, 'Username must be at least 3 characters')
     .max(30, 'Username must be under 30 characters')
     .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
@@ -41,6 +42,7 @@ export const UserLoginSchema = z.object({
 export const UserUpdateProfileSchema = z.object({
   username: z
     .string()
+    .trim()
     .min(3)
     .max(30)
     .regex(/^[a-zA-Z0-9_-]+$/)

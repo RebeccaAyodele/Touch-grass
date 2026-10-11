@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { ClientSession, ObjectId } from 'mongodb';
 import { getChallengesCollection } from '../collections.js';
 import { ChallengeDoc, ChallengeResponse, ChallengeStatus } from '@touch-grass/shared';
 
@@ -58,7 +58,8 @@ export class ChallengeRepository {
   static async updateStatus(
     id: string,
     status: ChallengeStatus,
-    timestampField?: 'startedAt' | 'completedAt'
+    timestampField?: 'startedAt' | 'completedAt',
+    session?: ClientSession
   ): Promise<ChallengeResponse | null> {
     if (!ObjectId.isValid(id)) return null;
 
@@ -70,7 +71,7 @@ export class ChallengeRepository {
     const result = await getChallengesCollection().findOneAndUpdate(
       { _id: new ObjectId(id) },
       updateDoc,
-      { returnDocument: 'after' }
+      { returnDocument: 'after', session }
     );
 
     return result ? toChallengeResponse(result) : null;

@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { ClientSession, ObjectId } from 'mongodb';
 import { getUsersCollection } from '../collections.js';
 import { UserDoc, UserResponse } from '@touch-grass/shared';
 
@@ -18,9 +18,16 @@ function toUserResponse(doc: UserDoc): UserResponse {
 }
 
 export class UserRepository {
-  static async findById(id: string): Promise<UserDoc | null> {
+  static async findById(id: string, session?: ClientSession): Promise<UserDoc | null> {
     if (!ObjectId.isValid(id)) return null;
-    return getUsersCollection().findOne({ _id: new ObjectId(id) });
+    return getUsersCollection().findOne({ _id: new ObjectId(id) }, { session });
+  }
+
+  static async findByUsername(username: string): Promise<UserDoc | null> {
+    return getUsersCollection().findOne(
+      { username },
+      { collation: { locale: 'en', strength: 2 } }
+    );
   }
 
   static async findByIdResponse(id: string): Promise<UserResponse | null> {
@@ -55,7 +62,12 @@ export class UserRepository {
     });
   }
 
-  static async updateXpAndLevel(id: string, additionalXp: number, newLevel: number): Promise<UserResponse | null> {
+  static async updateXpAndLevel(
+    id: string,
+    additionalXp: number,
+    newLevel: number,
+    session?: ClientSession
+  ): Promise<UserResponse | null> {
     if (!ObjectId.isValid(id)) return null;
 
     const result = await getUsersCollection().findOneAndUpdate(
@@ -64,7 +76,7 @@ export class UserRepository {
         $inc: { totalXp: additionalXp },
         $set: { level: newLevel, updatedAt: new Date() },
       },
-      { returnDocument: 'after' }
+      { returnDocument: 'after', session }
     );
 
     return result ? toUserResponse(result) : null;
