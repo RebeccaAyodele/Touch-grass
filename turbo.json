@@ -3,6 +3,18 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": [
+        "MONGODB_URI",
+        "MONGODB_DATABASE",
+        "JWT_SECRET",
+        "JWT_EXPIRES_IN",
+        "WEB_ORIGIN",
+        "AI_PROVIDER",
+        "AI_BASE_URL",
+        "AI_API_KEY",
+        "AI_MODEL",
+        "AI_REQUEST_TIMEOUT_MS"
+      ],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "dev": {
