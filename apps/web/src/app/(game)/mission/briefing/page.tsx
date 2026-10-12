@@ -3,7 +3,13 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useGame } from '../../../../context/GameContext';
-import { TactileCard, TactileButton, TactilePill } from '../../../../components/ui';
+import { TactileButton } from '../../../../components/ui';
+
+function sourceLabel(source: string) {
+  if (source === 'model') return 'AI generated';
+  if (source === 'mock') return 'Demo mission';
+  return 'Curated mission';
+}
 
 export default function BriefingPage() {
   const router = useRouter();
@@ -22,95 +28,103 @@ export default function BriefingPage() {
   }
 
   return (
-    <TactileCard className="p-5 sm:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-start flex-wrap gap-3 border-b-2 border-[var(--border-sand)] pb-4 animate-fade-in">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <TactilePill variant="sage" className="text-xs uppercase">
-              {currentChallenge.experienceType}
-            </TactilePill>
-            <TactilePill variant="gold" className="text-xs">
-              {currentChallenge.durationMinutes} Minutes
-            </TactilePill>
-            <TactilePill variant="sky" className="text-xs uppercase">
-              {currentChallenge.source}
-            </TactilePill>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-[var(--ink-forest)] mt-2">
-            {currentChallenge.title}
-          </h2>
+    <article className="mission-briefing animate-slide-up">
+      <header className="mission-briefing-hero">
+        <div className="mission-briefing-topline">
+          <span className="mission-briefing-kicker">Your field guide</span>
+          <span className="mission-source" title={`Mission source: ${currentChallenge.source}`}>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3.5c-4.8 0-8.5 3.7-8.5 8.5s3.7 8.5 8.5 8.5 8.5-3.7 8.5-8.5S16.8 3.5 12 3.5Z" stroke="currentColor" strokeWidth="1.7" />
+              <path d="M7.5 13.5c3.8-.1 6.7-2.4 8.9-6.1.5 5.1-1.9 9.1-6.2 9.2-1.5 0-2.5-1.1-2.7-3.1Z" fill="currentColor" />
+            </svg>
+            {sourceLabel(currentChallenge.source)}
+          </span>
         </div>
-        <div className="text-right shrink-0">
-          <span className="section-sublabel">Stakes</span>
-          <div className="text-lg font-black text-[var(--primary-botanical)]">
-            +{currentChallenge.baseXp}{' '}
-            <span className="text-xs text-[var(--ink-muted)]">
-              up to +{currentChallenge.maxBonusXp} bonus
-            </span>
-          </div>
-        </div>
-      </div>
 
-      {/* Story intro */}
-      {currentChallenge.storyIntro && (
-        <div className="animate-fade-in italic text-[var(--ink-forest)] bg-[var(--canvas-base)] p-4 rounded-lg border border-[var(--border-sand)]">
-          &ldquo;{currentChallenge.storyIntro}&rdquo;
-        </div>
-      )}
-
-      {/* Objective */}
-      <div className="animate-slide-up">
-        <span className="section-sublabel mb-1 block">Primary Objective</span>
-        <p className="text-base font-bold text-[var(--ink-forest)]">{currentChallenge.objective}</p>
-      </div>
-
-      {/* Instructions */}
-      <div className="animate-slide-up" style={{ animationDelay: '100ms' }}>
-        <span className="section-sublabel mb-2 block">Step-by-Step Instructions</span>
-        <ol className="space-y-2.5">
-          {currentChallenge.instructions.map((inst: string, i: number) => (
-            <li key={i} className="flex items-start gap-3 text-sm text-[var(--ink-forest)]">
-              <span className="w-6 h-6 rounded-full bg-[var(--surface-sage)] border border-[var(--ink-forest)] flex items-center justify-center font-bold text-xs shrink-0">
-                {i + 1}
+        <div className="mission-briefing-heading-row">
+          <div>
+            <div className="mission-meta-row">
+              <span className="mission-meta-tag">{currentChallenge.experienceType}</span>
+              <span className="mission-meta-tag mission-meta-tag-time">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.7" /><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+                {currentChallenge.durationMinutes} min
               </span>
-              <span>{inst}</span>
-            </li>
-          ))}
-        </ol>
-      </div>
-
-      {/* Safety note */}
-      {currentChallenge.safetyNotes && (
-        <div className="p-3 bg-[var(--canvas-base)] border border-[var(--ink-forest)] rounded-lg text-xs text-[var(--ink-forest)] animate-fade-in">
-          <span className="font-bold">🛡️ Safety Note:</span> {currentChallenge.safetyNotes}
+            </div>
+            <h1 className="mission-briefing-title">{currentChallenge.title}</h1>
+          </div>
+          <div className="mission-xp-card" aria-label={`${currentChallenge.baseXp} experience points, plus up to ${currentChallenge.maxBonusXp} bonus`}>
+            <span>Mission reward</span>
+            <strong>+{currentChallenge.baseXp} XP</strong>
+            <small>up to +{currentChallenge.maxBonusXp} bonus</small>
+          </div>
         </div>
-      )}
 
-      {/* Accessibility */}
-      {currentChallenge.accessibilityAlternative && (
-        <div className="p-3 bg-[var(--surface-sage)] rounded-lg text-xs text-[var(--ink-forest)] animate-fade-in">
-          <span className="font-bold">♿ Accessibility Alternative:</span> {currentChallenge.accessibilityAlternative}
-        </div>
-      )}
+        {currentChallenge.storyIntro && (
+          <p className="mission-story">“{currentChallenge.storyIntro}”</p>
+        )}
+      </header>
 
-      {/* Actions */}
-      <div className="pt-4 flex flex-col sm:flex-row gap-3">
-        <TactileButton
-          onClick={handleStart}
-          loading={loading}
-          className="flex-1 py-3.5 text-lg"
-        >
-          🚀 START MISSION · PUT PHONE AWAY
-        </TactileButton>
-        <TactileButton
-          variant="secondary"
-          onClick={() => router.push('/dashboard')}
-          className="py-3.5 px-6"
-        >
-          Back to Hub
-        </TactileButton>
+      <div className="mission-briefing-content">
+        <section className="mission-objective-panel">
+          <span className="mission-section-label">The intention</span>
+          <p>{currentChallenge.objective}</p>
+        </section>
+
+        <section className="mission-steps-section">
+          <div className="mission-section-heading">
+            <div>
+              <span className="mission-section-label">Take it one step at a time</span>
+              <h2>Your mission</h2>
+            </div>
+            <span className="mission-step-count">{currentChallenge.instructions.length} steps</span>
+          </div>
+          <ol className="mission-step-list">
+            {currentChallenge.instructions.map((instruction: string, index: number) => (
+              <li key={index}>
+                <span className="mission-step-number">{String(index + 1).padStart(2, '0')}</span>
+                <span>{instruction.replace(/^\d+[.)]\s*/, '')}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {(currentChallenge.safetyNotes || currentChallenge.accessibilityAlternative) && (
+          <aside className="mission-care-grid" aria-label="Helpful notes">
+            {currentChallenge.safetyNotes && (
+              <div className="mission-care-note mission-safety-note">
+                <span className="mission-care-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M12 3 20 6v5.2c0 4.7-3.3 8-8 9.8-4.7-1.8-8-5.1-8-9.8V6l8-3Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="m8.5 12 2.2 2.2 4.8-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </span>
+                <div><strong>Stay safe</strong><p>{currentChallenge.safetyNotes}</p></div>
+              </div>
+            )}
+            {currentChallenge.accessibilityAlternative && (
+              <div className="mission-care-note mission-access-note">
+                <span className="mission-care-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="4.5" r="1.8" stroke="currentColor" strokeWidth="1.7"/><path d="M5 8h14M12 8v5m0 0-4.5 7M12 13l4.5 7M8 11l4-3 4 3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </span>
+                <div><strong>Make it work for you</strong><p>{currentChallenge.accessibilityAlternative}</p></div>
+              </div>
+            )}
+          </aside>
+        )}
+
+        <footer className="mission-briefing-actions">
+          <div className="mission-phone-reminder">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="6.5" y="3" width="11" height="18" rx="2" stroke="currentColor" strokeWidth="1.7"/><path d="M10 6h4M11 18h2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>
+            <span>Once you begin, your phone can take a break too.</span>
+          </div>
+          <div className="mission-action-buttons">
+            <TactileButton onClick={handleStart} loading={loading} className="mission-start-button">
+              Start mission
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h13m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </TactileButton>
+            <TactileButton variant="secondary" onClick={() => router.push('/dashboard')} className="mission-back-button">
+              Back to hub
+            </TactileButton>
+          </div>
+        </footer>
       </div>
-    </TactileCard>
+    </article>
   );
 }
