@@ -9,6 +9,7 @@ import {
   LeaderboardEntry,
   ExperienceType,
   DurationMinutes,
+  EvidenceSubmission,
 } from '@touch-grass/shared';
 import { calculateLevelProgress } from '@touch-grass/game';
 import { api } from '../lib/api';
@@ -23,6 +24,7 @@ interface GameState {
   // Active challenge
   currentChallenge: ChallengeResponse | null;
   lastCompletion: CompletionResponse | null;
+  lastEvidence: EvidenceSubmission[];
 
   // Spaces & Leaderboard
   spaces: SpaceResponse[];
@@ -35,7 +37,7 @@ interface GameState {
 interface GameActions {
   // Auth
   login: (email: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string, confirmPassword: string) => Promise<void>;
   logout: () => void;
 
   // Challenges
@@ -72,6 +74,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [currentChallenge, setCurrentChallenge] = useState<ChallengeResponse | null>(null);
   const [lastCompletion, setLastCompletion] = useState<CompletionResponse | null>(null);
+  const [lastEvidence, setLastEvidence] = useState<EvidenceSubmission[]>([]);
   const [spaces, setSpaces] = useState<SpaceResponse[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
@@ -113,11 +116,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const register = useCallback(async (username: string, email: string, password: string) => {
+  const register = useCallback(async (username: string, email: string, password: string, confirmPassword: string) => {
     setLoading(true);
     setErrorMsg(null);
     try {
-      const res = await api.register(username, email, password);
+      const res = await api.register(username, email, password, confirmPassword);
       setUser(res.user);
     } catch (err: any) {
       setErrorMsg(err.message);
@@ -132,6 +135,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setCurrentChallenge(null);
     setLastCompletion(null);
+    setLastEvidence([]);
     setSpaces([]);
   }, []);
 
@@ -169,36 +173,35 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const submitEvidence = useCallback(async (textResponse: string, photoUrl: string) => {
     if (!currentChallenge) throw new Error('No active challenge');
+    const missionLog = textResponse.trim();
+    if (!missionLog) throw new Error('Write a short mission log before submitting.');
     setLoading(true);
     setErrorMsg(null);
     try {
-      const evidenceList: any[] = [];
+      const evidenceList: EvidenceSubmission[] = [{
+        challengeId: currentChallenge.id,
+        type: 'text_response',
+        textResponse: missionLog,
+      }];
       if (currentChallenge.verificationMethods.includes('photo')) {
+        if (!photoUrl.trim()) throw new Error('This mission requires a photo evidence URL.');
         evidenceList.push({
           challengeId: currentChallenge.id,
           type: 'photo',
-          imageUrl: photoUrl || 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600',
+          imageUrl: photoUrl.trim(),
         });
       }
-      if (
-        currentChallenge.verificationMethods.includes('text_response') ||
-        currentChallenge.verificationMethods.includes('observation')
-      ) {
+      if (currentChallenge.verificationMethods.includes('observation')) {
         evidenceList.push({
           challengeId: currentChallenge.id,
-          type: 'text_response',
-          textResponse: textResponse || 'Completed outdoor observation with focus and curiosity.',
-        });
-      }
-      if (evidenceList.length === 0) {
-        evidenceList.push({
-          challengeId: currentChallenge.id,
-          type: 'honor',
+          type: 'observation',
+          textResponse: missionLog,
         });
       }
 
       const { completion } = await api.completeChallenge(currentChallenge.id, evidenceList);
       setLastCompletion(completion);
+      setLastEvidence(evidenceList);
       if (user) {
         setUser({
           ...user,
@@ -242,6 +245,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const clearChallenge = useCallback(() => {
     setCurrentChallenge(null);
     setLastCompletion(null);
+    setLastEvidence([]);
   }, []);
 
   const value: GameState & GameActions = {
@@ -251,6 +255,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     errorMsg,
     currentChallenge,
     lastCompletion,
+    lastEvidence,
     spaces,
     leaderboard,
     levelProgress,

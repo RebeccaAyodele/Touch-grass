@@ -8,7 +8,7 @@ import { LevelUpCelebration } from '../../../../components/LevelUpCelebration';
 
 export default function ResultsPage() {
   const router = useRouter();
-  const { lastCompletion, clearChallenge } = useGame();
+  const { lastCompletion, lastEvidence, clearChallenge } = useGame();
   const [showLevelUp, setShowLevelUp] = useState(true);
 
   if (!lastCompletion) {
@@ -68,6 +68,15 @@ export default function ResultsPage() {
           >
             &ldquo;{lastCompletion.feedback}&rdquo;
           </div>
+        )}
+
+        {lastEvidence.find((item) => item.type === 'text_response')?.textResponse && (
+          <section className="bg-[var(--canvas-cream)] p-4 rounded-xl border border-[var(--border-sand)] max-w-md mx-auto text-left animate-slide-up">
+            <h3 className="text-sm font-extrabold text-[var(--ink-forest)]">Your mission log</h3>
+            <p className="mt-2 text-sm leading-relaxed text-[var(--ink-muted)] whitespace-pre-wrap">
+              {lastEvidence.find((item) => item.type === 'text_response')?.textResponse}
+            </p>
+          </section>
         )}
 
         {/* Level Up Card (inline, in addition to the overlay) */}

@@ -32,6 +32,10 @@ export const UserRegisterSchema = z.object({
     .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens'),
   email: z.string().email('Invalid email address').toLowerCase(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string().min(1, 'Confirm password is required'),
+}).refine((data) => data.confirmPassword.length === 0 || data.password === data.confirmPassword, {
+  path: ['confirmPassword'],
+  message: 'Passwords do not match',
 });
 
 export const UserLoginSchema = z.object({

@@ -1,12 +1,12 @@
 import {
   UserResponse,
   ChallengeResponse,
+  ChallengeGenerateRequest,
   CompletionResponse,
   SpaceResponse,
   LeaderboardEntry,
   ExperienceType,
   DurationMinutes,
-  Difficulty,
   EvidenceSubmission,
 } from '@touch-grass/shared';
 
@@ -59,7 +59,15 @@ class ApiClient {
       let errorMsg = `HTTP Error ${res.status}`;
       try {
         const errorData = await res.json();
-        errorMsg = errorData.error || errorMsg;
+        const validationMessages = Array.isArray(errorData.details)
+          ? errorData.details
+              .map((detail: { message?: unknown }) => detail.message)
+              .filter((message: unknown): message is string => typeof message === 'string')
+          : [];
+
+        errorMsg = validationMessages.length > 0
+          ? validationMessages.join(' ')
+          : errorData.error || errorMsg;
       } catch {}
       throw new Error(errorMsg);
     }
@@ -68,10 +76,15 @@ class ApiClient {
   }
 
   // Auth
-  async register(username: string, email: string, password: string): Promise<{ user: UserResponse; token: string }> {
+  async register(
+    username: string,
+    email: string,
+    password: string,
+    confirmPassword: string
+  ): Promise<{ user: UserResponse; token: string }> {
     const data = await this.request<{ user: UserResponse; token: string }>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, confirmPassword }),
     });
     this.setToken(data.token);
     return data;
@@ -102,8 +115,8 @@ class ApiClient {
   async generateChallenge(params: {
     experienceType: ExperienceType;
     durationMinutes: DurationMinutes;
-    difficulty?: Difficulty;
-    spaceId?: string | null;
+    difficulty?: ChallengeGenerateRequest['difficulty'];
+    spaceId?: ChallengeGenerateRequest['spaceId'];
   }): Promise<{ challenge: ChallengeResponse }> {
     return this.request<{ challenge: ChallengeResponse }>('/challenges/generate', {
       method: 'POST',

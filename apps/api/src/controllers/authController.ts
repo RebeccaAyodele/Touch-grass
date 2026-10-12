@@ -19,6 +19,7 @@ function generateTouchGrassId(): string {
 export class AuthController {
   static async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      // Confirmation is validated here, then excluded from the persisted user document.
       const { username, email, password } = UserRegisterSchema.parse(req.body);
 
       const existingEmail = await UserRepository.findByEmail(email);
