@@ -3,7 +3,7 @@ import { MongoServerError } from 'mongodb';
 import { getDb } from '@touch-grass/db';
 import type { AuthenticatedRequest } from './auth.js';
 import type { Request } from 'express';
-import { ensureDatabase } from './database.js';
+import { describeDatabaseError, ensureDatabase } from './database.js';
 
 // Coarse per-instance ceiling for general traffic. Costly auth and AI routes
 // below also use shared MongoDB buckets to enforce quotas across instances.
@@ -63,7 +63,8 @@ export async function authLimiter(req: Request, res: Response, next: NextFunctio
       return;
     }
     next();
-  } catch {
+  } catch (error) {
+    console.error('[Rate limit] Shared authentication limiter is unavailable.', describeDatabaseError(error));
     res.status(503).json({
       error: 'Service temporarily unavailable',
       message: 'The database is temporarily unavailable. Please try again shortly.',
