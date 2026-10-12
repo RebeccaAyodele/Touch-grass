@@ -181,6 +181,16 @@ export class ChallengeController {
         evidence,
       });
 
+      // Invalid evidence is feedback for another attempt, not a completed mission.
+      if (!evaluation.valid) {
+        res.status(422).json({
+          error: 'This log does not yet show how you completed the mission.',
+          feedback: evaluation.feedback,
+          evaluation,
+        });
+        return;
+      }
+
       // Deterministic scoring calculation
       const scoreResult = calculateFinalScore({
         baseXp: challengeDoc.baseXp,

@@ -15,18 +15,10 @@ export class EvaluationWorkflow {
     try {
       return await this.provider.evaluateEvidence(context);
     } catch (err: any) {
-      console.warn('[EvaluationWorkflow] Evidence evaluation failed, using safe baseline:', err.message);
-
-      // Graceful baseline evaluation: award base completion without arbitrary bonus
-      return {
-        valid: true,
-        relevanceScore: 70,
-        noveltyScore: 70,
-        interestingnessScore: 70,
-        explanationScore: 70,
-        proposedBonusRatio: 0.5,
-        feedback: 'Submission accepted! Your outdoor observation has been recorded.',
-      };
+      console.warn('[EvaluationWorkflow] Evidence evaluation failed:', err?.message ?? err);
+      const unavailable = new Error('AI evaluation is temporarily unavailable. Your mission was not submitted; please try again.') as Error & { statusCode: number };
+      unavailable.statusCode = 503;
+      throw unavailable;
     }
   }
 }

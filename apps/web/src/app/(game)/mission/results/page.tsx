@@ -42,7 +42,7 @@ export default function ResultsPage() {
         {/* XP Summary */}
         <div className="animate-fade-in">
           <span className="text-xs font-extrabold uppercase tracking-wider text-[var(--primary-botanical)]">
-            Challenge Accomplished!
+            {lastCompletion.valid ? 'Challenge Accomplished!' : 'Mission log needs another try'}
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-[var(--ink-forest)] mt-1">
             +{lastCompletion.finalXp} XP

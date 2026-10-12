@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { GameProvider, useGame } from '../../context/GameContext';
 import { TactileButton } from '../../components/ui';
@@ -12,6 +12,11 @@ function LoginForm() {
   const [form, setForm] = useState({ username: '', email: '', password: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    const requestedMode = new URLSearchParams(window.location.search).get('mode');
+    if (requestedMode === 'login' || requestedMode === 'register') setMode(requestedMode);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

@@ -24,26 +24,29 @@ export class MockAIProvider implements AIProvider {
 
   async evaluateEvidence(context: EvidenceEvaluationContext): Promise<EvidenceEvaluationResult> {
     const { challenge, evidence } = context;
-    const hasPhoto = evidence.some((e) => e.type === 'photo' && !!e.imageUrl);
-    const hasText = evidence.some(
-      (e) => (e.type === 'text_response' || e.type === 'observation') && !!e.textResponse
-    );
+    const reflection = evidence
+      .find((e) => (e.type === 'text_response' || e.type === 'observation') && !!e.textResponse)
+      ?.textResponse?.trim() ?? '';
+    // The mock cannot assess semantic relevance, but it should reject obvious placeholders.
+    const hasSubstantiveText = reflection.length >= 20 && reflection.split(/\s+/).length >= 4;
 
-    const relevanceScore = hasPhoto || hasText ? 85 : 50;
-    const noveltyScore = 80;
-    const interestingnessScore = 82;
-    const explanationScore = hasText ? 88 : 70;
+    const relevanceScore = hasSubstantiveText ? 75 : 0;
+    const noveltyScore = hasSubstantiveText ? 70 : 0;
+    const interestingnessScore = hasSubstantiveText ? 70 : 0;
+    const explanationScore = hasSubstantiveText ? 75 : 0;
 
-    const proposedBonusRatio = 0.8; // 80% of max bonus
+    const proposedBonusRatio = hasSubstantiveText ? 0.2 : 0;
 
     return {
-      valid: true,
+      valid: hasSubstantiveText,
       relevanceScore,
       noveltyScore,
       interestingnessScore,
       explanationScore,
       proposedBonusRatio,
-      feedback: `[Mock AI] Excellent submission for "${challenge.title}"! The recorded observation was thoughtful and matched the outdoor mission.`,
+      feedback: hasSubstantiveText
+        ? `[Mock AI] Your log has enough detail to review for "${challenge.title}". The mock evaluator cannot confirm semantic relevance; use a real AI provider for mission-specific feedback.`
+        : `[Mock AI] Please add a few sentences describing what you did for "${challenge.title}" and a specific detail related to its objective.`,
     };
   }
 }

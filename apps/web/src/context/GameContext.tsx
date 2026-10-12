@@ -12,7 +12,7 @@ import {
   EvidenceSubmission,
 } from '@touch-grass/shared';
 import { calculateLevelProgress } from '@touch-grass/game';
-import { api } from '../lib/api';
+import { api, ApiError } from '../lib/api';
 
 interface GameState {
   // Auth & User
@@ -211,7 +211,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       }
       return completion;
     } catch (err: any) {
-      setErrorMsg(err.message);
+      if (!(err instanceof ApiError && err.statusCode === 422)) {
+        setErrorMsg(err.message);
+      }
       throw err;
     } finally {
       setLoading(false);

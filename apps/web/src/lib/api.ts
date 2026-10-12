@@ -12,6 +12,17 @@ import {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly statusCode: number,
+    readonly feedback?: string
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 class ApiClient {
   private token: string | null = null;
 
@@ -57,8 +68,10 @@ class ApiClient {
 
     if (!res.ok) {
       let errorMsg = `HTTP Error ${res.status}`;
+      let feedback: string | undefined;
       try {
         const errorData = await res.json();
+        feedback = typeof errorData.feedback === 'string' ? errorData.feedback : undefined;
         const validationMessages = Array.isArray(errorData.details)
           ? errorData.details
               .map((detail: { message?: unknown }) => detail.message)
@@ -69,7 +82,7 @@ class ApiClient {
           ? validationMessages.join(' ')
           : errorData.error || errorMsg;
       } catch {}
-      throw new Error(errorMsg);
+      throw new ApiError(errorMsg, res.status, feedback);
     }
 
     return res.json() as Promise<T>;

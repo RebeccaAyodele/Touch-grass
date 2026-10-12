@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGame } from '../../../../context/GameContext';
 import { TactileCard, TactileButton, TactilePill } from '../../../../components/ui';
+import { ApiError } from '../../../../lib/api';
 
 export default function SubmitEvidencePage() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export default function SubmitEvidencePage() {
   const [textResponse, setTextResponse] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [aiFeedback, setAiFeedback] = useState<string | null>(null);
 
   if (!currentChallenge) {
     router.push('/dashboard');
@@ -29,11 +31,16 @@ export default function SubmitEvidencePage() {
       return;
     }
     setFormError(null);
+    setAiFeedback(null);
     try {
       await submitEvidence(textResponse, photoUrl);
       router.push('/mission/results');
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Your mission log could not be submitted. Please try again.');
+      if (error instanceof ApiError && error.statusCode === 422) {
+        setAiFeedback(error.feedback || error.message);
+      } else {
+        setFormError(error instanceof Error ? error.message : 'Your mission log could not be submitted. Please try again.');
+      }
     }
   }
 
@@ -53,7 +60,7 @@ export default function SubmitEvidencePage() {
           <textarea
             id="field-observation"
             value={textResponse}
-            onChange={(event) => { setTextResponse(event.target.value); setFormError(null); }}
+            onChange={(event) => { setTextResponse(event.target.value); setFormError(null); setAiFeedback(null); }}
             placeholder="Describe what you actually did and one thing you noticed, discovered, or felt."
             rows={5}
             maxLength={1000}
@@ -72,7 +79,7 @@ export default function SubmitEvidencePage() {
               id="photo-evidence"
               type="url"
               value={photoUrl}
-              onChange={(event) => { setPhotoUrl(event.target.value); setFormError(null); }}
+              onChange={(event) => { setPhotoUrl(event.target.value); setFormError(null); setAiFeedback(null); }}
               placeholder="https://…"
               required
               className="tactile-input"
@@ -81,6 +88,13 @@ export default function SubmitEvidencePage() {
           </div>
         )}
         {formError && <p role="alert" className="text-sm font-semibold text-red-700">{formError}</p>}
+        {aiFeedback && (
+          <section role="alert" className="rounded-xl border-2 border-[var(--border-sand)] bg-[var(--canvas-cream)] p-4">
+            <h3 className="font-bold text-[var(--ink-forest)]">A little more detail is needed</h3>
+            <p className="mt-1 text-sm leading-relaxed text-[var(--ink-muted)]">{aiFeedback}</p>
+            <p className="mt-2 text-xs text-[var(--ink-muted)]">Your mission is still active. Update your log and submit again.</p>
+          </section>
+        )}
       </div>
 
       <div className="pt-2 flex flex-col sm:flex-row gap-3">
