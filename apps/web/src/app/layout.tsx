@@ -6,10 +6,18 @@ export const metadata: Metadata = {
   description:
     'The phone is the scoreboard. The game happens outside. AI-generated real-world challenges for outdoor discovery, creativity, and connection.',
   keywords: ['outdoor game', 'AI challenges', 'touch grass', 'real-world quests', 'nature exploration'],
+  icons: {
+    apple: '/apple-icon.png',
+  },
   openGraph: {
     title: 'Touch Grass — AI-Powered Outdoor Game',
     description: 'Step outside. Earn XP. Touch Grass.',
     type: 'website',
+  },
+  appleWebApp: {
+    capable: true,
+    title: 'Touch Grass',
+    statusBarStyle: 'default',
   },
 };
 

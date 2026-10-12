@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import InstallAppButton from './InstallAppButton';
 
 export default function HomePage() {
   return (
@@ -31,6 +32,8 @@ export default function HomePage() {
             Sign in
           </Link>
         </div>
+
+        <InstallAppButton />
 
         <p className="mt-12 max-w-lg text-sm leading-relaxed text-[#687365]">
           Choose a vibe, take on a real-world mission, and log what you discovered.
