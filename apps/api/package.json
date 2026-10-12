@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:integration": "vitest run src/__tests__/completion-transaction.integration.test.ts",
+    "loadtest": "tsx scripts/load-test.ts",
     "lint": "echo 'No linter configured for api'"
   },
   "dependencies": {

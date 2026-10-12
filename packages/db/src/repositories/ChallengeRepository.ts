@@ -32,6 +32,23 @@ function toChallengeResponse(doc: ChallengeDoc): ChallengeResponse {
 }
 
 export class ChallengeRepository {
+  static async start(id: string, durationMinutes: number): Promise<ChallengeResponse | null> {
+    if (!ObjectId.isValid(id)) return null;
+    const startedAt = new Date();
+    const result = await getChallengesCollection().findOneAndUpdate(
+      { _id: new ObjectId(id), status: 'generated' },
+      {
+        $set: {
+          status: 'active',
+          startedAt,
+          expiresAt: new Date(startedAt.getTime() + durationMinutes * 60_000),
+        },
+      },
+      { returnDocument: 'after' }
+    );
+    return result ? toChallengeResponse(result) : null;
+  }
+
   static async findById(id: string): Promise<ChallengeDoc | null> {
     if (!ObjectId.isValid(id)) return null;
     return getChallengesCollection().findOne({ _id: new ObjectId(id) });

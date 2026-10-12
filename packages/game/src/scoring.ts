@@ -14,6 +14,30 @@ export interface ScoreCalculationOutput {
   feedback: string;
 }
 
+/** Scales the earned score by the share of the selected mission time elapsed. */
+export function applyDurationXpMultiplier(
+  score: ScoreCalculationOutput,
+  elapsedRatio: number
+): ScoreCalculationOutput {
+  if (!score.valid) return score;
+
+  const multiplier = Math.max(0, Math.min(1, elapsedRatio));
+  if (multiplier >= 1) return score;
+
+  const baseXp = Math.floor(score.baseXp * multiplier);
+  const finalXp = Math.floor(score.finalXp * multiplier);
+  const bonusXp = Math.max(0, finalXp - baseXp);
+  const percent = Math.round(multiplier * 100);
+
+  return {
+    ...score,
+    baseXp,
+    bonusXp,
+    finalXp,
+    feedback: `${score.feedback} XP was adjusted to ${percent}% of the mission reward because the mission was submitted before the selected time had elapsed.`,
+  };
+}
+
 /**
  * Deterministically computes the awarded XP and bounds the AI bonus.
  * The AI can NEVER award XP above maxBonusXp.

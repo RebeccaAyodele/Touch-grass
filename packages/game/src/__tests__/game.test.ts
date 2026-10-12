@@ -6,6 +6,7 @@ import {
   xpForLevel,
   calculateLevelProgress,
   calculateFinalScore,
+  applyDurationXpMultiplier,
   isValidStatusTransition,
   validateEvidenceRequirements,
   rankPlayers,
@@ -95,6 +96,21 @@ describe('Game Engine - Deterministic Calculations', () => {
 
       expect(result.valid).toBe(false);
       expect(result.finalXp).toBe(0);
+    });
+
+    it('reduces XP in proportion to the selected mission time that elapsed', () => {
+      const score = calculateFinalScore({ baseXp: 350, maxBonusXp: 140 });
+      const adjusted = applyDurationXpMultiplier(score, 0.75);
+
+      expect(adjusted.baseXp).toBe(262);
+      expect(adjusted.finalXp).toBe(262);
+      expect(adjusted.bonusXp).toBe(0);
+      expect(adjusted.feedback).toContain('adjusted to 75%');
+    });
+
+    it('awards the full score after the selected time has elapsed', () => {
+      const score = calculateFinalScore({ baseXp: 350, maxBonusXp: 140 });
+      expect(applyDurationXpMultiplier(score, 1.2)).toEqual(score);
     });
   });
 

@@ -110,6 +110,9 @@ export default function BriefingPage() {
         )}
 
         <footer className="mission-briefing-actions">
+          <p className="mission-duration-note" role="note">
+            Full XP requires the selected mission time to pass. If you submit earlier, your XP is reduced in proportion to the time elapsed. For example, submitting a 20-minute mission after 15 minutes earns 75% of its XP.
+          </p>
           <div className="mission-phone-reminder">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="6.5" y="3" width="11" height="18" rx="2" stroke="currentColor" strokeWidth="1.7"/><path d="M10 6h4M11 18h2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>
             <span>Once you begin, your phone can take a break too.</span>

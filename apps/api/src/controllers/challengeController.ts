@@ -18,6 +18,7 @@ import {
   isValidStatusTransition,
   validateEvidenceRequirements,
   calculateFinalScore,
+  applyDurationXpMultiplier,
 } from '@touch-grass/game';
 import { env } from '../config/env.js';
 import { CompletionAlreadyClaimedError, persistChallengeCompletion } from '../services/completionService.js';
@@ -120,7 +121,11 @@ export class ChallengeController {
       return;
     }
 
-    const updated = await ChallengeRepository.updateStatus(id, 'active', 'startedAt');
+    const updated = await ChallengeRepository.start(id, challenge.durationMinutes);
+    if (!updated) {
+      res.status(409).json({ error: 'This challenge has already been started or changed.' });
+      return;
+    }
     res.status(200).json({ challenge: updated });
   }
 
@@ -140,6 +145,14 @@ export class ChallengeController {
         res.status(404).json({ error: 'Challenge not found.' });
         return;
       }
+
+      if (challengeDoc.status !== 'active' || !challengeDoc.startedAt) {
+        res.status(409).json({ error: 'Start this challenge before submitting your mission log.' });
+        return;
+      }
+
+      // Capture submission time before evidence validation/AI latency affects processing.
+      const submittedAt = new Date();
 
       // Return a clear conflict for requests made after a completion is committed.
       const existingCompletion = await CompletionRepository.findByChallengeAndUser(id, user.id);
@@ -192,11 +205,15 @@ export class ChallengeController {
       }
 
       // Deterministic scoring calculation
-      const scoreResult = calculateFinalScore({
+      const baseScore = calculateFinalScore({
         baseXp: challengeDoc.baseXp,
         maxBonusXp: challengeDoc.maxBonusXp,
         evaluation,
       });
+      const durationMs = challengeDoc.durationMinutes * 60_000;
+      const elapsedMs = Math.max(0, submittedAt.getTime() - challengeDoc.startedAt.getTime());
+      const elapsedRatio = durationMs > 0 ? Math.min(1, elapsedMs / durationMs) : 1;
+      const scoreResult = applyDurationXpMultiplier(baseScore, elapsedRatio);
 
       const completion = await persistChallengeCompletion({
         challengeId: id,

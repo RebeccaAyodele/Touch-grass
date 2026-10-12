@@ -366,6 +366,7 @@
   .mission-care-note p { margin: 0; color: #4d5d4e; font-size: 0.78rem; line-height: 1.45; }
 
   .mission-briefing-actions { flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid #e8dfd1; }
+  .mission-duration-note { flex: 0 0 100%; margin: 0; padding: 0.8rem 0.95rem; border: 1px solid #d8c6aa; border-radius: 0.85rem; background: #f5ead7; color: #5f4a32; font-size: 0.8rem; font-weight: 650; line-height: 1.45; }
   .mission-phone-reminder { display: flex; align-items: center; gap: 0.55rem; max-width: 20rem; color: #687365; font-size: 0.78rem; font-weight: 600; line-height: 1.4; }
   .mission-phone-reminder svg { color: var(--primary-botanical); }
   .mission-action-buttons { justify-content: flex-end; flex-wrap: wrap; }

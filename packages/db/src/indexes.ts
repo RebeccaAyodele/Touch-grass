@@ -5,6 +5,7 @@ import {
   getSpacesCollection,
   getSpaceMembersCollection,
 } from './collections.js';
+import { getDb } from './client.js';
 
 /**
  * Creates all required indexes for performance, uniqueness, and data integrity.
@@ -15,6 +16,7 @@ export async function ensureDatabaseIndexes(): Promise<void> {
   const completions = getCompletionsCollection();
   const spaces = getSpacesCollection();
   const spaceMembers = getSpaceMembersCollection();
+  const rateLimits = getDb().collection('api_rate_limits');
 
   // Users indexes
   await users.createIndex({ email: 1 }, { unique: true });
@@ -39,4 +41,7 @@ export async function ensureDatabaseIndexes(): Promise<void> {
   // Space Members compound index
   await spaceMembers.createIndex({ spaceId: 1, userId: 1 }, { unique: true });
   await spaceMembers.createIndex({ userId: 1 });
+
+  // Shared rate-limit buckets expire automatically across serverless instances.
+  await rateLimits.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: 'rate_limit_expiry' });
 }

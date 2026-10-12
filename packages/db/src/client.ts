@@ -7,34 +7,45 @@ dns.setServers(['8.8.8.8', '1.1.1.1']);
 
 let client: MongoClient | null = null;
 let dbInstance: Db | null = null;
+let connectionPromise: Promise<Db> | null = null;
 
 export interface DatabaseConfig {
   uri: string;
   dbName: string;
 }
 
-export async function connectDatabase(config: DatabaseConfig): Promise<Db> {
+export function connectDatabase(config: DatabaseConfig): Promise<Db> {
   if (dbInstance) {
-    return dbInstance;
+    return Promise.resolve(dbInstance);
   }
+  if (connectionPromise) return connectionPromise;
 
   if (!config.uri) {
-    throw new Error('MONGODB_URI is required to connect to database.');
+    return Promise.reject(new Error('MONGODB_URI is required to connect to database.'));
   }
 
-  client = new MongoClient(config.uri, {
-  maxPoolSize: 20,
-  minPoolSize: 2,
-  serverSelectionTimeoutMS: 15000,
-  autoSelectFamily: false,
-});
+  const nextClient = new MongoClient(config.uri, {
+    maxPoolSize: 20,
+    minPoolSize: 0,
+    waitQueueTimeoutMS: 10000,
+    serverSelectionTimeoutMS: 8000,
+    autoSelectFamily: false,
+  });
 
-  await client.connect();
+  connectionPromise = nextClient.connect()
+    .then(() => {
+      client = nextClient;
+      dbInstance = nextClient.db(config.dbName || 'touch_grass');
+      console.log('[Database] Connected successfully.');
+      return dbInstance;
+    })
+    .catch(async (error: unknown) => {
+      await nextClient.close().catch(() => undefined);
+      connectionPromise = null;
+      throw error;
+    });
 
-  dbInstance = client.db(config.dbName || 'touch_grass');
-  console.log('[Database] Connected successfully.');
-
-  return dbInstance;
+  return connectionPromise;
 }
 
 export function getDb(): Db {
@@ -66,9 +77,9 @@ export async function withDatabaseTransaction<T>(
 }
 
 export async function disconnectDatabase(): Promise<void> {
-  if (client) {
-    await client.close();
-    client = null;
-    dbInstance = null;
-  }
+  const currentClient = client;
+  client = null;
+  dbInstance = null;
+  connectionPromise = null;
+  if (currentClient) await currentClient.close();
 }

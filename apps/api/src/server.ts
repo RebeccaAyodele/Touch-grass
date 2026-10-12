@@ -1,48 +1,23 @@
 import { app } from './app.js';
 import { env } from './config/env.js';
-import { connectDatabase, ensureDatabaseIndexes, disconnectDatabase } from '@touch-grass/db';
+import { disconnectDatabase } from '@touch-grass/db';
 
-async function bootstrap() {
-  try {
-    console.log(`[Database] Connecting to MongoDB (${env.MONGODB_DATABASE})...`);
-    await connectDatabase({
-      uri: env.MONGODB_URI,
-      dbName: env.MONGODB_DATABASE,
-    });
-    console.log('[Database] Connected successfully.');
+// Start HTTP immediately. Database connection and indexes are initialized on
+// the first data-backed request, which lets serverless instances return a
+// controlled 503 instead of exiting during a cold start.
+const server = app.listen(env.API_PORT, () => {
+  console.log(`Touch Grass API listening on port ${env.API_PORT}/api/v1`);
+  console.log(`AI Provider active: ${env.AI_PROVIDER} (${env.AI_MODEL})`);
+});
 
-    console.log('[Database] Ensuring indexes...');
-    await ensureDatabaseIndexes();
-    console.log('[Database] Indexes ensured.');
+let shuttingDown = false;
+const shutdown = () => {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  server.close(() => {
+    void disconnectDatabase().finally(() => process.exit(0));
+  });
+};
 
-    const server = app.listen(env.API_PORT, () => {
-      console.log(`🌿 Touch Grass API running on http://localhost:${env.API_PORT}/api/v1`);
-      console.log(`🎯 AI Provider active: ${env.AI_PROVIDER} (${env.AI_MODEL})`);
-    });
-
-    const shutdown = async () => {
-      console.log('\n[Server] Shutting down gracefully...');
-      server.close(async () => {
-        await disconnectDatabase();
-        console.log('[Server] Closed.');
-        process.exit(0);
-      });
-    };
-
-    process.on('SIGINT', shutdown);
-    process.on('SIGTERM', shutdown);
-  } catch (err: any) {
-    console.error('[Server Bootstrap Error]:', err);
-    console.error('[Server Error Cause]:', err.cause);
-    if (env.NODE_ENV === 'development') {
-      console.warn('⚠️ Starting Express server in standalone / test mode without DB connection.');
-      app.listen(env.API_PORT, () => {
-        console.log(`🌿 Touch Grass API running in fallback mode on http://localhost:${env.API_PORT}/api/v1`);
-      });
-    } else {
-      process.exit(1);
-    }
-  }
-}
-
-bootstrap();
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);

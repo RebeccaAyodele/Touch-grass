@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import { MongoNetworkError, MongoNotConnectedError, MongoServerSelectionError } from 'mongodb';
 
 export function errorHandler(
   err: any,
@@ -18,8 +19,20 @@ export function errorHandler(
     return;
   }
 
+  if (
+    err instanceof MongoNetworkError ||
+    err instanceof MongoServerSelectionError ||
+    err instanceof MongoNotConnectedError
+  ) {
+    res.status(503).json({
+      error: 'Service temporarily unavailable',
+      message: 'The database is temporarily unavailable. Please try again shortly.',
+    });
+    return;
+  }
+
   const statusCode = err.status || err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
+  const message = statusCode >= 500 ? 'An unexpected server error occurred.' : err.message || 'Request failed.';
 
   if (process.env.NODE_ENV !== 'test') {
     console.error(`[API Error] ${statusCode} - ${message}`, err.stack);
