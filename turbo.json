@@ -6,6 +6,7 @@
       "env": [
         "MONGODB_URI",
         "MONGODB_DATABASE",
+        "NEXT_PUBLIC_API_URL",
         "JWT_SECRET",
         "JWT_EXPIRES_IN",
         "WEB_ORIGIN",

@@ -28,7 +28,7 @@ export default function BriefingPage() {
   }
 
   return (
-    <article className="mission-briefing animate-slide-up">
+    <article className="mission-briefing animate-fade-in">
       <header className="mission-briefing-hero">
         <div className="mission-briefing-topline">
           <span className="mission-briefing-kicker">Your field guide</span>

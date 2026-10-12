@@ -1,264 +1,166 @@
-<div align="center">
+# Touch Grass
 
-# 🌱 Touch Grass
+Touch Grass is an open-source outdoor challenge game. Choose an experience and a time, get a mission, put your phone away while you do it, then log what happened and earn XP.
 
-### *The phone is the scoreboard. The game happens outside.*
+The guiding idea is: **The phone is the scoreboard. The game happens outside.**
 
-**An AI-powered real-world outdoor challenge game built for the Hacktoberfest Open-Source AI Challenge.**
+## How a mission works
 
-[![Open Source](https://img.shields.io/badge/Open%20Source-%E2%9D%A4-green?style=flat-square)](https://github.com/RebeccaAyodele/Touch-grass)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
-[![Powered by Gemma 2](https://img.shields.io/badge/AI-Gemma%202%20(Open%20Weight)-blue?style=flat-square)](https://ai.google.dev/gemma)
-[![Built with Next.js](https://img.shields.io/badge/Frontend-Next.js%2016-black?style=flat-square)](https://nextjs.org)
-[![MongoDB Atlas](https://img.shields.io/badge/Database-MongoDB%20Atlas-green?style=flat-square)](https://www.mongodb.com/atlas)
+1. Choose a vibe and a duration.
+2. Generate and review a mission.
+3. Start the mission, then put your phone away.
+4. Return and write a short mission log.
+5. The configured AI provider evaluates the log. The server applies the XP rules and saves the result.
 
-[Demo](#) · [Report Bug](https://github.com/RebeccaAyodele/Touch-grass/issues) · [Request Feature](https://github.com/RebeccaAyodele/Touch-grass/issues)
+## What is implemented
 
-</div>
+- Account registration and login with password hashing and JWT authentication.
+- Seven mission vibes: Observe, Calm, Discover, Explore, Active, Social, and Surprise Me.
+- Mission durations of 10, 20, 30, or 60 minutes.
+- A mock AI provider for development, plus OpenAI-compatible endpoints configured for OpenRouter, Groq, Together AI, Ollama, or a custom endpoint.
+- Schema validation and curated challenge fallbacks when generation fails.
+- Text mission logs and structured AI evaluation. Invalid evidence can be revised and submitted again.
+- Server-side XP calculation, level progression, and a duration-based XP reduction when a mission is submitted early.
+- Spaces with a shareable invite code, member list, and Space leaderboard.
+- A global leaderboard, account profile, and install prompt for adding the web app to a phone home screen.
 
----
+## Current limitations
 
-## 🎯 What is Touch Grass?
+- Spaces use invite codes. Inviting a player by username, pending invitations, and notifications are not implemented.
+- The Spaces interface does not yet provide a complete group-challenge lifecycle.
+- The install prompt and web manifest support adding the site to a home screen. There is no offline service worker; missions and account features need an internet connection.
+- Photo upload is not implemented end to end. The current mission generator requests text evidence; the upload-signature endpoint is not a complete Cloudinary upload flow.
+- The profile screen displays account and game stats, but profile editing and mission history are not available in the screen yet. The API profile update route also needs persistence work before it should be relied on.
+- The leaderboards rank by total XP. They are not weekly or seasonal rankings.
+- Current code uses base rewards of 200, 350, 500, and 750 XP for 10, 20, 30, and 60 minutes, with maximum bonuses of 80, 140, 200, and 300 XP. The game specification document recommends different values; that product decision still needs to be reconciled.
 
-Touch Grass is an **open-source, AI-powered game** that gets you off your screen and into the real world. Instead of doom-scrolling, you complete **AI-generated real-world outdoor missions** — noticing nature, exploring your surroundings, doing mindful pauses — and earn XP for it.
+## Technology and layout
 
-**The twist:** the phone is just the scoreboard. The actual game happens outside.
+- Web: Next.js 16 App Router, React 19, TypeScript, and Tailwind CSS 4.
+- API: Express 4, TypeScript, Zod, JWT, bcryptjs, Helmet, CORS, and express-rate-limit.
+- Database: MongoDB using the official Node.js driver.
+- AI: provider interface and OpenAI-compatible chat-completions adapter in `packages/ai`.
+- Workspace: pnpm 11 and Turborepo.
 
-### Core Loop
-```
-Choose a vibe  →  AI generates a real-world mission  →  Put phone away
-→  Go outside & do the mission  →  Come back & submit evidence
-→  AI evaluates your observation  →  Earn XP + discovery bonus  →  Level up
-```
-
----
-
-## ✨ Features
-
-- 🤖 **Open-Weight AI Game Master** — Powered by [Gemma 2](https://ai.google.dev/gemma) (9B), an open-weight model. Runs via Groq/Together AI (cloud) or Ollama (100% local, no API key needed)
-- 🌍 **7 Experience Themes** — Observe, Calm, Discover, Explore, Active, Social, Surprise
-- ⏱️ **4 Duration Tiers** — 10, 20, 30, or 60-minute missions with scaled XP rewards
-- 📊 **Deterministic XP Engine** — Transparent, auditable scoring with discovery bonuses evaluated by AI
-- 🏕️ **Spaces** — Create friend rooms for asynchronous group quests and leaderboards
-- 📵 **Phone-Away Mode** — Minimalist screen encouraging you to actually go outside
-- 🎉 **Level-Up Celebrations** — Confetti, animations, and XP breakdowns
-- 🔒 **JWT Authentication** — Secure user sessions with bcrypt password hashing
-- 🌐 **Fully Open Source** — Self-hostable, hackable, and contribution-friendly
-
----
-
-## 🏗️ Architecture
-
-```
-touch-grass/                    # pnpm + Turborepo monorepo
-├── apps/
-│   ├── web/                    # Next.js 16 (App Router) frontend
-│   └── api/                    # Express.js REST API
-└── packages/
-    ├── shared/                 # Zod schemas & TypeScript types
-    ├── game/                   # Pure TS game engine (XP, levels, anti-cheat)
-    ├── ai/                     # Gemma 2 provider + Mastra workflows
-    └── db/                     # MongoDB repositories & indexes
+```text
+apps/web/          Next.js pages and browser API client
+apps/api/          Express routes, controllers, middleware, and configuration
+packages/shared/   Shared domain types and Zod schemas
+packages/game/     XP, levels, score rules, and validation
+packages/ai/       AI providers, workflows, prompts, and fallback challenges
+packages/db/       MongoDB connection, indexes, and repositories
+.docs/             Product requirements and technical specifications
 ```
 
-### Tech Stack
+## Requirements
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | Next.js 16, Tailwind CSS v4, TypeScript |
-| **Backend** | Express.js, JWT, Zod, bcrypt |
-| **AI Model** | Gemma 2 9B (open-weight) via Groq / Together AI / Ollama |
-| **Database** | MongoDB Atlas (free M0 tier) |
-| **Monorepo** | pnpm workspaces + Turborepo |
-| **Language** | TypeScript throughout |
+- Node.js 20.9 or later.
+- pnpm 11.28.5, as pinned in the root `package.json`.
+- MongoDB Atlas or a reachable MongoDB instance for registration, login, and saved game data.
+- An AI provider key for remote generation and evidence evaluation. The mock provider needs no key.
 
----
+## Local setup
 
-## 🚀 Getting Started
+Install dependencies from the repository root:
 
-### Prerequisites
-
-- Node.js 20+
-- pnpm 9+ (`npm install -g pnpm`)
-- A MongoDB instance (Atlas free tier or local)
-
-### 1. Clone the repo
-
-```bash
-git clone https://github.com/RebeccaAyodele/Touch-grass.git
-cd Touch-grass
-```
-
-### 2. Install dependencies
-
-```bash
+```sh
 pnpm install
 ```
 
-### 3. Configure environment
+Create `apps/api/.env` from `.env.example` and set at least the database name, MongoDB URI, and a private development JWT secret. The API loads its environment from `apps/api/.env` when started with the command below. Do not use the example JWT value outside local development.
 
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your values:
+The web app reads `NEXT_PUBLIC_API_URL` from `apps/web/.env.local`. For local development, set it to:
 
 ```env
-# Required
-MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.xxx.mongodb.net/touch_grass
-
-# AI Provider (choose one — or leave as 'mock' for offline dev)
-AI_PROVIDER=mock           # No API key needed
-# AI_PROVIDER=groq         # https://console.groq.com (free tier)
-# AI_PROVIDER=ollama       # Local inference (see below)
+NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
 ```
 
-### 4. Run in development
+To use the mock AI provider, set these in `apps/api/.env`:
 
-```bash
-# In separate terminals:
-pnpm --filter api dev    # API → http://localhost:4000
-pnpm --filter web dev    # Web → http://localhost:3000
-```
-
----
-
-## 🤖 AI Provider Options
-
-Touch Grass supports three AI backends — all using the open-weight **Gemma 2** model:
-
-### Option A: Mock (Offline, zero setup)
 ```env
 AI_PROVIDER=mock
+AI_MODEL=gemma-2-9b-it
 ```
-Uses deterministic fallback challenges. No API key or internet required. Perfect for development.
 
-### Option B: Groq (Cloud, free tier)
+To use OpenRouter, use your own OpenRouter key and a model ID supported by that account:
+
 ```env
-AI_PROVIDER=groq
-AI_BASE_URL=https://api.groq.com/openai/v1
-AI_API_KEY=your_groq_api_key
-AI_MODEL=gemma2-9b-it
-```
-Get a free API key at [console.groq.com](https://console.groq.com). Fastest inference.
-
-### Option C: Together AI
-```env
-AI_PROVIDER=together
-AI_BASE_URL=https://api.together.xyz/v1
-AI_API_KEY=your_together_api_key
-AI_MODEL=google/gemma-2-9b-it
+AI_PROVIDER=openrouter
+AI_BASE_URL=https://openrouter.ai/api/v1
+AI_API_KEY=your_openrouter_key
+AI_MODEL=provider/model-id
+AI_REQUEST_TIMEOUT_MS=30000
 ```
 
-### Option D: Ollama (100% Local, no API key)
-```bash
-# Install Ollama: https://ollama.ai
-ollama pull gemma2:9b
-```
-```env
-AI_PROVIDER=ollama
-AI_BASE_URL=http://localhost:11434/v1
-AI_MODEL=gemma2:9b
+Keep AI keys, MongoDB credentials, and `JWT_SECRET` on the API. Never put them in a `NEXT_PUBLIC_` variable or commit an `.env` file. The `.env.example` file contains placeholders only.
+
+Run the API and web app in separate terminals from the repository root:
+
+```sh
+pnpm --filter api dev
 ```
 
----
+```sh
+pnpm --filter web dev
+```
 
-## 🎮 Game Mechanics
+The local addresses are `http://localhost:4000` for the API and `http://localhost:3000` for the web app.
 
-### XP & Scoring
+## Commands
 
-| Duration | Base XP | Max Discovery Bonus |
-|----------|---------|-------------------|
-| 10 min   | 200 XP  | +80 XP |
-| 20 min   | 350 XP  | +140 XP |
-| 30 min   | 500 XP  | +200 XP |
-| 60 min   | 750 XP  | +300 XP |
+Run from the repository root:
 
-The **Discovery Bonus** (0–100%) is evaluated by the AI Game Master based on the quality, detail, and novelty of your field observation submission.
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev` | Start workspace development tasks through Turborepo. |
+| `pnpm build` | Build configured workspace packages and apps. |
+| `pnpm typecheck` | Run TypeScript checks. |
+| `pnpm test` | Run the configured Vitest suites. |
+| `pnpm lint` | Run workspace lint scripts; some packages currently use placeholder scripts rather than a real linter. |
+| `pnpm --filter api test:integration` | Run the MongoDB completion transaction integration test. |
 
-### Level Progression
+The integration test requires `MONGODB_TEST_URI` for a disposable replica-set database with permission to create and drop databases. Never point it at production or a database containing data you need to keep.
 
-Level N requires: `XP = 100 × (N-1) × N ÷ 2`
+## API routes
 
-| Level | Total XP Required |
-|-------|-----------------|
-| 1     | 0 XP |
-| 2     | 100 XP |
-| 5     | 1,000 XP |
-| 10    | 4,500 XP |
+The API base path is `/api/v1`.
 
-### Experience Themes
+| Method | Route | Access | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/health/live` | Public | Liveness check. |
+| `GET` | `/health` | Public | Reports the API process's current database readiness state. |
+| `POST` | `/auth/register` | Public | Register an account. |
+| `POST` | `/auth/login` | Public | Log in and receive a JWT. |
+| `POST` | `/auth/logout` | Authenticated | Log out in the client by clearing its token. The JWT is not server-revoked. |
+| `GET` | `/auth/me` | Authenticated | Get the current account. |
+| `GET` | `/users/me` | Authenticated | Read the current profile and completion count. |
+| `PATCH` | `/users/me` | Authenticated | Profile update endpoint; currently does not persist changes. |
+| `GET` | `/users/me/history` | Authenticated | Read recent mission completions. |
+| `POST` | `/challenges/generate` | Authenticated | Generate and save a mission. |
+| `GET` | `/challenges/active` | Authenticated | Get the active mission. |
+| `POST` | `/challenges/:id/start` | Authenticated | Start a mission. |
+| `POST` | `/challenges/:id/complete` | Authenticated | Submit evidence and process its result. |
+| `POST`, `GET` | `/spaces` | Authenticated | Create a Space or list the current user's Spaces. |
+| `POST` | `/spaces/join` | Authenticated | Join a Space with its invite code. |
+| `GET` | `/leaderboard` | Authenticated | Read the global leaderboard. |
+| `GET` | `/leaderboard/spaces/:id` | Space member | Read that Space's leaderboard. |
 
-| Theme | Emoji | Description |
-|-------|-------|-------------|
-| Observe | 👀 | Notice details hidden in plain sight |
-| Calm | 🌿 | Mindful pause, listening & stillness |
-| Discover | 📸 | Botanical & texture foraging |
-| Explore | 🧭 | New perspective on familiar space |
-| Active | 🏃 | Movement & perimeter circuit |
-| Social | 👥 | Partner discovery with a friend |
-| Surprise | 🎲 | Spontaneous creative mission |
+Other implemented routes include challenge lookup, Space membership and challenge reads, public player profiles, and evidence upload-signature metadata. The API source in `apps/api/src/routes` is the authoritative route list.
 
----
+## Deployment
 
-## 📡 API Reference
+The repository includes a root `vercel.json` that declares the `web` and `api` Vercel services and routes `/api/*` requests to the API service. A deployment still needs its environment variables configured in Vercel. Use `.env.example` as the variable inventory; set `NEXT_PUBLIC_API_URL` to the deployed API base URL and keep database, JWT, and AI credentials server-side.
 
-Base URL: `http://localhost:4000/api/v1`
+The deployment configuration is present in the repository, but successful production behavior depends on the Vercel environment, MongoDB Atlas network access, and the selected AI provider. Do not assume local `.env` files are available in production.
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/health` | No | Service health check |
-| `POST` | `/auth/register` | No | Create account |
-| `POST` | `/auth/login` | No | Login & get JWT |
-| `GET` | `/auth/me` | Yes | Get current user |
-| `POST` | `/challenges/generate` | Yes | AI generates a mission |
-| `POST` | `/challenges/:id/start` | Yes | Start active mission |
-| `POST` | `/challenges/:id/complete` | Yes | Submit evidence & earn XP |
-| `GET` | `/leaderboard` | Yes | Global XP rankings |
-| `POST` | `/spaces` | Yes | Create a friend space |
-| `POST` | `/spaces/join` | Yes | Join via invite code |
+## Contributing
 
----
+Issues and pull requests are welcome. Before making changes, review the product and technical specifications in `.docs/` and check the current implementation rather than assuming every planned feature exists.
 
-## 🤝 Contributing
+1. Create a focused branch.
+2. Make a focused change and run the relevant checks.
+3. Open a pull request describing the change and the checks performed.
 
-Contributions are what make open source amazing! All contributions are welcome.
+## License
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feat/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feat/amazing-feature`)
-5. Open a Pull Request
-
-Please follow [Conventional Commits](https://www.conventionalcommits.org/) for commit messages.
-
-### Ideas for contributions
-- 🌍 Localization / translations
-- 🏅 New badge types and achievement system
-- 📱 React Native / mobile app
-- 🗺️ Map integration for location-based missions
-- 🎵 Ambient sound mode for Phone-Away screen
-
----
-
-## 📄 License
-
-Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information.
-
----
-
-## 🙏 Acknowledgements
-
-- [Google DeepMind](https://deepmind.google/) for the open-weight [Gemma 2](https://ai.google.dev/gemma) model
-- [Groq](https://groq.com/) for blazing-fast open-model inference
-- [Ollama](https://ollama.ai/) for making local AI inference accessible
-- [MongoDB Atlas](https://www.mongodb.com/atlas) for the free database tier
-- Built for [Hacktoberfest](https://hacktoberfest.com/) Open-Source AI Challenge 🎃
-
----
-
-<div align="center">
-Made with 🌿 by <a href="https://github.com/RebeccaAyodele">Rebecca Ayodele</a>
-<br/>
-<em>Go touch some grass.</em>
-</div>
+This project is licensed under the MIT License. See [LICENSE](LICENSE).

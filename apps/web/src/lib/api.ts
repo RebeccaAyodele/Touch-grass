@@ -116,6 +116,10 @@ class ApiClient {
     return this.request<{ user: UserResponse }>('/auth/me');
   }
 
+  async getMyProfile(): Promise<{ user: UserResponse; stats: { completedCount: number } }> {
+    return this.request<{ user: UserResponse; stats: { completedCount: number } }>('/users/me');
+  }
+
   logout() {
     this.setToken(null);
   }
