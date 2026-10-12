@@ -177,6 +177,10 @@ class ApiClient {
     return this.request<{ leaderboard: LeaderboardEntry[] }>('/leaderboard');
   }
 
+  async getSpaceLeaderboard(spaceId: string): Promise<{ leaderboard: LeaderboardEntry[] }> {
+    return this.request<{ leaderboard: LeaderboardEntry[] }>(`/leaderboard/spaces/${encodeURIComponent(spaceId)}`);
+  }
+
   // User History
   async getMyHistory(): Promise<{ history: any[] }> {
     return this.request<{ history: any[] }>('/users/me/history');
