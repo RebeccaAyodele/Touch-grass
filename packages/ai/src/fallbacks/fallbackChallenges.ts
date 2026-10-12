@@ -1,194 +1,103 @@
-import {
-  GeneratedChallenge,
-  ExperienceType,
-  DurationMinutes,
-} from '@touch-grass/shared';
+import { GeneratedChallenge, ExperienceType, DurationMinutes } from '@touch-grass/shared';
 import { calculateBaseXp, calculateMaxBonusXp } from '@touch-grass/game';
 
-export const FALLBACK_CHALLENGES: Record<
-  ExperienceType,
-  (duration: DurationMinutes) => GeneratedChallenge
-> = {
-  calm: (duration) => ({
-    title: 'The Sky & Shadow Pause',
-    description:
-      'Step outside into a courtyard, balcony, or garden. Spend quiet moments watching the movement of shadows and cloud patterns without looking at a screen.',
-    experienceType: 'calm',
-    durationMinutes: duration,
-    difficulty: 'easy',
-    storyIntro: 'The world moves fast, but nature maintains its own quiet rhythm.',
-    objective: 'Sit or stand comfortably outside and observe 3 distinct natural changes or ambient sounds.',
-    instructions: [
-      'Find a safe, quiet spot outside (your yard, balcony, or nearby bench).',
-      'Put your phone in your pocket or face down.',
-      'Spend 10–15 minutes listening to the ambient sounds and observing light on surfaces.',
-      'Note 3 subtle things you normally overlook.',
-    ],
-    completionCriteria: 'Describe 3 specific sounds or light/shadow observations you noticed during your pause.',
-    verificationMethods: ['observation', 'text_response'],
-    baseXp: calculateBaseXp(duration),
-    maxBonusXp: calculateMaxBonusXp(duration),
-    safetyNotes: 'Choose a sheltered, safe spot away from roadway traffic.',
-    accessibilityAlternative: 'Can be completed fully seated on a balcony, open window, or doorstep.',
-    optionalBonusObjective: 'Note the exact direction of the wind or movement of the highest cloud layer.',
-    source: 'fallback',
-  }),
+type FallbackCopy = Pick<GeneratedChallenge,
+  'title' | 'description' | 'storyIntro' | 'objective' | 'instructions' |
+  'completionCriteria' | 'safetyNotes' | 'accessibilityAlternative' | 'optionalBonusObjective'
+>;
 
-  observe: (duration) => ({
-    title: 'Micro-Texture Expedition',
-    description:
-      'Discover 3 completely different textures created by nature or weathering in your immediate outdoor area.',
-    experienceType: 'observe',
-    durationMinutes: duration,
-    difficulty: 'moderate',
-    storyIntro: 'Intricate design is hidden in plain sight on every leaf, bark, and stone.',
-    objective: 'Find and closely inspect 3 contrasting natural textures (e.g. rough bark, smooth pebble, ribbed leaf).',
-    instructions: [
-      'Step outside into your garden, walkway, or nearby green space.',
-      'Put your phone away and search closely for 3 distinct surface textures.',
-      'Gently touch or inspect each texture to examine its pattern.',
-      'Take one photo of your most fascinating texture discovery.',
-    ],
-    completionCriteria: 'Submit a photo of your most unusual texture find with a short note describing all three textures.',
-    verificationMethods: ['photo', 'text_response'],
-    baseXp: calculateBaseXp(duration),
-    maxBonusXp: calculateMaxBonusXp(duration),
-    safetyNotes: 'Do not touch unknown thorny plants or disturb nesting insects.',
-    accessibilityAlternative: 'Can be done within arms reach of a container garden or potted plant.',
-    optionalBonusObjective: 'Explain what natural process (weathering, growth) formed the texture.',
-    source: 'fallback',
-  }),
-
-  explore: (duration) => ({
-    title: 'The Overlooked Detail Hunt',
-    description:
-      'Explore an accessible outdoor space and find an architectural detail or natural landmark you have never paid attention to before.',
-    experienceType: 'explore',
-    durationMinutes: duration,
-    difficulty: 'moderate',
-    storyIntro: 'Even the most familiar places hold secrets when you look with fresh eyes.',
-    objective: 'Identify a unique physical marker, vintage signage, or natural growth pattern in your vicinity.',
-    instructions: [
-      'Leave your desk and head outdoors into your neighborhood or courtyard.',
-      'Pocket your phone and choose a path you do not frequently inspect.',
-      'Scan building corners, rooflines, tree branches, or stone markers.',
-      'Photograph the single most unusual overlooked feature you discover.',
-    ],
-    completionCriteria: 'Submit a photo of the overlooked feature and explain what caught your eye.',
-    verificationMethods: ['photo', 'text_response'],
-    baseXp: calculateBaseXp(duration),
-    maxBonusXp: calculateMaxBonusXp(duration),
-    safetyNotes: 'Stay on public walkways and respect private property boundaries.',
-    accessibilityAlternative: 'Focus on examining architectural features visible from an accessible ramp or seating area.',
-    optionalBonusObjective: 'Estimate approximately how old the feature or plant might be.',
-    source: 'fallback',
-  }),
-
-  active: (duration) => ({
-    title: 'The Perimeter Scavenger Circuit',
-    description:
-      'Engage in light movement around an outdoor courtyard or park while tracking 4 distinct environmental markers.',
-    experienceType: 'active',
-    durationMinutes: duration,
-    difficulty: 'moderate',
-    storyIntro: 'Movement refreshes the body and sharpens the senses.',
-    objective: 'Walk the perimeter of a safe outdoor space, finding 4 different tree or plant varieties.',
-    instructions: [
-      'Head outside to an open space, yard, or park perimeter.',
-      'Put your phone away and begin moving at a comfortable, steady pace.',
-      'Every few minutes, pause briefly to identify a different leaf or branch structure.',
-      'Complete the full circuit without checking your screen.',
-    ],
-    completionCriteria: 'Describe the 4 plant varieties or landmarks you encountered on your route.',
-    verificationMethods: ['observation', 'text_response'],
-    baseXp: calculateBaseXp(duration),
-    maxBonusXp: calculateMaxBonusXp(duration),
-    safetyNotes: 'Wear comfortable shoes and stay on designated pedestrian pathways.',
-    accessibilityAlternative: 'Adjust pace or distance to suit personal mobility preferences.',
-    optionalBonusObjective: 'Take a photo at the highest elevation point of your route.',
-    source: 'fallback',
-  }),
-
-  social: (duration) => ({
-    title: 'Two Perspectives Observation',
-    description:
-      'Complete an outdoor observation quest with a friend, each looking for different elements in the same environment.',
-    experienceType: 'social',
-    durationMinutes: duration,
-    difficulty: 'moderate',
-    storyIntro: 'Sharing the outdoors with others reveals details you might miss on your own.',
-    objective: 'With a friend or partner, find 3 outdoor features that fit contrasting themes (e.g., oldest vs newest, darkest green vs brightest blossom).',
-    instructions: [
-      'Gather with a friend in any outdoor space.',
-      'Assign roles: Player 1 looks for natural growth, Player 2 looks for crafted structures.',
-      'Put phones away and explore the space together for 15 minutes.',
-      'Compare what each person spotted and take a photo of your favorite shared find.',
-    ],
-    completionCriteria: 'Submit a photo and a brief summary of what you both discovered.',
-    verificationMethods: ['photo', 'text_response'],
-    baseXp: calculateBaseXp(duration),
-    maxBonusXp: calculateMaxBonusXp(duration),
-    safetyNotes: 'Always respect social comfort and public space guidelines.',
-    accessibilityAlternative: 'Can be completed seated together on a park bench or patio table.',
-    optionalBonusObjective: 'Name one thing your partner noticed that you completely overlooked.',
-    source: 'fallback',
-  }),
-
-  discover: (duration) => ({
-    title: 'Botanical & Wildlife Spy',
-    description:
-      'Discover signs of outdoor life right outside your door: insect pollinators, bird perches, or newly sprouted shoots.',
-    experienceType: 'discover',
-    durationMinutes: duration,
-    difficulty: 'moderate',
-    storyIntro: 'Nature thrives in every crevice, garden corner, and hedgerow.',
-    objective: 'Find direct evidence of local wildlife or active plant growth.',
-    instructions: [
-      'Go outside to a garden bed, planter box, or grassy lawn.',
-      'Leave your phone in your pocket and observe quietly for 10 minutes.',
-      'Look under leaves, on bark, or into flowering blooms for pollinators or bird activity.',
-      'Capture one close-up photo of your living discovery.',
-    ],
-    completionCriteria: 'Submit a photo of the plant or animal life observed with a description.',
-    verificationMethods: ['photo', 'text_response'],
-    baseXp: calculateBaseXp(duration),
-    maxBonusXp: calculateMaxBonusXp(duration),
-    safetyNotes: 'Observe insects and wildlife from a safe, non-intrusive distance.',
-    accessibilityAlternative: 'Can be completed inspecting potted plants on a window ledge or patio.',
-    optionalBonusObjective: 'Identify the specific species or color palette of the organism.',
-    source: 'fallback',
-  }),
-
-  surprise: (duration) => ({
-    title: 'The Unplanned Outdoor Sketch',
-    description:
-      'Let spontaneous curiosity guide you: step outside with paper or a mind for visualization, and capture the contour of an outdoor silhouette.',
-    experienceType: 'surprise',
-    durationMinutes: duration,
-    difficulty: 'adventurous',
-    storyIntro: 'Surprise comes from creative spontaneity in the open air.',
-    objective: 'Find an unusual organic silhouette (branch arch, cloud formation, stone profile) and observe or sketch its contours.',
-    instructions: [
-      'Step outside into whatever outdoor area is immediately available.',
-      'Look upward or across the horizon for an interesting silhouette against the sky.',
-      'Put your phone away and spend 10 minutes studying its geometry.',
-      'Take a photo of the silhouette or your nature-inspired sketch.',
-    ],
-    completionCriteria: 'Submit a photo of the outdoor silhouette or your sketch with a brief note.',
-    verificationMethods: ['photo', 'text_response'],
-    baseXp: calculateBaseXp(duration),
-    maxBonusXp: calculateMaxBonusXp(duration),
-    safetyNotes: 'Do not look directly at the sun while observing sky silhouettes.',
-    accessibilityAlternative: 'Can be completed from any outdoor vantage point.',
-    optionalBonusObjective: 'Write a one-sentence title for your silhouette.',
-    source: 'fallback',
-  }),
+const FALLBACK_COPY: Record<ExperienceType, FallbackCopy> = {
+  calm: {
+    title: 'A Minute for the Weather',
+    description: 'Pause in one comfortable outdoor spot and let your attention settle on the weather around you.',
+    storyIntro: 'A small pause can make familiar surroundings feel new.',
+    objective: 'Spend a few quiet minutes noticing how the air, light, or sounds change around you.',
+    instructions: ['Choose one safe place to pause.', 'Settle into a comfortable seated or standing position.', 'Notice three small changes in the air, light, or surrounding sounds.', 'Return and write what helped you feel present.'],
+    completionCriteria: 'Write what you noticed and which moment helped you slow down.',
+    safetyNotes: 'Choose a comfortable place away from traffic and stop if the weather feels unsafe.',
+    accessibilityAlternative: 'Complete the pause seated by an open doorway or window, without needing to go far.',
+    optionalBonusObjective: 'Notice whether one slow breath changes what you hear.',
+  },
+  observe: {
+    title: 'The Tiny Pattern Study',
+    description: 'Give one small natural detail your full attention and look for patterns that are easy to miss.',
+    storyIntro: 'The smallest details often have the most to show.',
+    objective: 'Study one safe-to-reach natural surface and describe three details in its pattern.',
+    instructions: ['Choose a natural detail you can inspect without disturbing it.', 'Look closely at its lines, edges, colors, or repeating shapes.', 'Shift your viewpoint once and notice what changes.', 'Return and record three specific details from memory.'],
+    completionCriteria: 'Describe the detail you studied and three visible patterns or changes you noticed.',
+    safetyNotes: 'Do not touch unknown plants, wildlife, or anything that may be hazardous.',
+    accessibilityAlternative: 'Choose a detail visible from where you are comfortably seated.',
+    optionalBonusObjective: 'Give the pattern a name of your own.',
+  },
+  explore: {
+    title: 'A New Angle on a Familiar Place',
+    description: 'Look at a nearby public place from a different angle and find one detail you usually pass by.',
+    storyIntro: 'You do not need to go far to find something unfamiliar.',
+    objective: 'Notice and investigate one overlooked detail in a nearby public outdoor place.',
+    instructions: ['Choose a familiar, safe public spot.', 'Take a short, comfortable route or scan the area from one place.', 'Find one detail you have not really noticed before.', 'Return and describe what it is and what drew your attention.'],
+    completionCriteria: 'Write where you looked, what you discovered, and why it stood out.',
+    safetyNotes: 'Stay on public paths and respect private property.',
+    accessibilityAlternative: 'Explore visually from an accessible seat or path; movement is optional.',
+    optionalBonusObjective: 'Imagine what question you would ask about the detail.',
+  },
+  active: {
+    title: 'Move to a Natural Rhythm',
+    description: 'Use a few minutes outdoors for gentle movement, guided by a comfortable rhythm of your own.',
+    storyIntro: 'Movement can be simple, playful, and entirely your own.',
+    objective: 'Try three comfortable movements and notice how each changes your energy or focus.',
+    instructions: ['Choose a safe, level place with room to move.', 'Try three gentle movements, such as shoulder rolls, a slow stretch, or a few steps.', 'Pause between movements and notice how your body feels.', 'Return and log which movement felt best.'],
+    completionCriteria: 'Record the movements you chose and how one of them felt.',
+    safetyNotes: 'Keep movement within your comfort level and stop if anything hurts or feels unsafe.',
+    accessibilityAlternative: 'Choose gentle seated movements or small hand and shoulder motions.',
+    optionalBonusObjective: 'Notice a sound or natural rhythm that matched your movement.',
+  },
+  social: {
+    title: 'A Kind Word, A Good Question',
+    description: 'Share a small moment of connection with someone you know and who is happy to chat.',
+    storyIntro: 'A little attention can make an ordinary conversation warmer.',
+    objective: 'Offer one sincere, specific compliment or ask a willing companion an open, easy question.',
+    instructions: ['Invite a friend or companion who is comfortable joining you.', 'Spend a few minutes together in a place you both feel at ease.', 'Share a genuine compliment about something specific, or ask: “What is something small that made you smile recently?”', 'Listen to their answer, then return and log how the exchange felt.'],
+    completionCriteria: 'Describe the kind of question or compliment you shared and what you learned or felt. Do not include names or identifying details.',
+    safetyNotes: 'Only do this with someone you know or someone already engaged in a mutually welcomed conversation. Respect a no or a short answer; never request personal details.',
+    accessibilityAlternative: 'Have the conversation seated, by phone before heading out, or write a kind note to someone you know.',
+    optionalBonusObjective: 'Notice one thing you appreciated about how the other person listened.',
+  },
+  discover: {
+    title: 'Follow One Curious Question',
+    description: 'Choose a small question about your surroundings and look for clues that help answer it.',
+    storyIntro: 'Curiosity turns an ordinary detail into a discovery.',
+    objective: 'Investigate one question about a natural or built detail in a nearby public place.',
+    instructions: ['Think of one question about something you can safely observe.', 'Look for two clues that might help answer it.', 'Compare the clues and decide what they suggest.', 'Return and write your question, clues, and best explanation.'],
+    completionCriteria: 'Log your question, the clues you noticed, and what you think they mean.',
+    safetyNotes: 'Observe without disturbing wildlife, plants, or other people’s property.',
+    accessibilityAlternative: 'Choose a question you can investigate from a comfortable seated position.',
+    optionalBonusObjective: 'Write one follow-up question your discovery raised.',
+  },
+  surprise: {
+    title: 'Find a Shape in the Ordinary',
+    description: 'Let chance choose a small creative observation and turn it into a short story or sketch.',
+    storyIntro: 'An unexpected idea can change the way you see a familiar place.',
+    objective: 'Find an ordinary outdoor shape and imagine what else it could be.',
+    instructions: ['Look around from a safe place and let one shape catch your eye.', 'Study its outline for a moment.', 'Imagine it as something else, such as a map, creature, or letter.', 'Return and write or sketch what you imagined.'],
+    completionCriteria: 'Describe the shape and the unexpected thing you imagined it to be.',
+    safetyNotes: 'Do not look directly at the sun or enter unsafe areas to find a view.',
+    accessibilityAlternative: 'Choose a shape visible from where you are comfortably seated.',
+    optionalBonusObjective: 'Give your imagined discovery a title.',
+  },
 };
 
-export function getFallbackChallenge(
-  type: ExperienceType,
-  duration: DurationMinutes
-): GeneratedChallenge {
-  const generator = FALLBACK_CHALLENGES[type] ?? FALLBACK_CHALLENGES.calm;
-  return generator(duration);
+export const FALLBACK_CHALLENGES: Record<ExperienceType, (duration: DurationMinutes) => GeneratedChallenge> =
+  Object.fromEntries(Object.entries(FALLBACK_COPY).map(([type, copy]) => [type, (duration: DurationMinutes) => ({
+    ...copy,
+    experienceType: type as ExperienceType,
+    durationMinutes: duration,
+    difficulty: 'easy' as const,
+    verificationMethods: ['text_response' as const],
+    baseXp: calculateBaseXp(duration),
+    maxBonusXp: calculateMaxBonusXp(duration),
+    source: 'fallback' as const,
+  })])) as Record<ExperienceType, (duration: DurationMinutes) => GeneratedChallenge>;
+
+export function getFallbackChallenge(type: ExperienceType, duration: DurationMinutes): GeneratedChallenge {
+  return (FALLBACK_CHALLENGES[type] ?? FALLBACK_CHALLENGES.calm)(duration);
 }
