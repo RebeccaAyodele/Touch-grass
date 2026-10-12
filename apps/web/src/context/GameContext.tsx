@@ -207,6 +207,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           ...user,
           totalXp: completion.newTotalXp,
           level: completion.newLevel,
+          streak: completion.newStreak,
         });
       }
       return completion;

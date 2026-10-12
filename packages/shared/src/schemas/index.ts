@@ -160,6 +160,7 @@ export const CompletionResponseSchema = z.object({
   finalXp: z.number(),
   newTotalXp: z.number(),
   newLevel: z.number(),
+  newStreak: z.number(),
   leveledUp: z.boolean(),
   feedback: z.string(),
   evaluation: EvidenceEvaluationResultSchema.optional(),

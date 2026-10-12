@@ -9,13 +9,17 @@ import { ProgressBar, TactileCard } from '../../../components/ui';
 export default function ProfilePage() {
   const { user, levelProgress } = useGame();
   const [completedCount, setCompletedCount] = useState<number | null>(null);
+  const [currentStreak, setCurrentStreak] = useState<number | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     api.getMyProfile()
       .then(({ stats }) => {
-        if (active) setCompletedCount(stats.completedCount);
+        if (active) {
+          setCompletedCount(stats.completedCount);
+          setCurrentStreak(stats.currentStreak);
+        }
       })
       .catch(() => {
         if (active) setProfileError('Your profile stats could not be loaded. Please refresh to try again.');
@@ -55,7 +59,7 @@ export default function ProfilePage() {
         </TactileCard>
         <TactileCard className="profile-stat-card">
           <span className="profile-stat-label">Current streak</span>
-          <strong>{user.streak} days</strong>
+          <strong>{currentStreak === null ? '—' : `${currentStreak} days`}</strong>
         </TactileCard>
       </section>
 

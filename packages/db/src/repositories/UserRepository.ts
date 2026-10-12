@@ -66,6 +66,7 @@ export class UserRepository {
     id: string,
     additionalXp: number,
     newLevel: number,
+    newStreak: number,
     session?: ClientSession
   ): Promise<UserResponse | null> {
     if (!ObjectId.isValid(id)) return null;
@@ -74,7 +75,7 @@ export class UserRepository {
       { _id: new ObjectId(id) },
       {
         $inc: { totalXp: additionalXp },
-        $set: { level: newLevel, updatedAt: new Date() },
+        $set: { level: newLevel, streak: newStreak, updatedAt: new Date() },
       },
       { returnDocument: 'after', session }
     );

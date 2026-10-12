@@ -10,6 +10,8 @@ import {
   isValidStatusTransition,
   validateEvidenceRequirements,
   rankPlayers,
+  calculateCurrentStreak,
+  calculateStreakAsOf,
 } from '../index.js';
 
 describe('Game Engine - Deterministic Calculations', () => {
@@ -161,6 +163,36 @@ describe('Game Engine - Deterministic Calculations', () => {
       expect(ranked[0]?.rank).toBe(1);
       expect(ranked[1]?.rank).toBe(2);
       expect(ranked[2]?.rank).toBe(3);
+    });
+
+    describe('Streaks', () => {
+      it('counts consecutive UTC calendar days and ignores duplicate completions on one day', () => {
+        const completedAt = new Date('2026-10-12T08:00:00.000Z');
+        expect(calculateCurrentStreak([
+          new Date('2026-10-11T09:00:00.000Z'),
+          new Date('2026-10-11T18:00:00.000Z'),
+          new Date('2026-10-10T10:00:00.000Z'),
+        ], completedAt)).toBe(3);
+      });
+
+      it('starts a new streak when the previous completion was not yesterday', () => {
+        expect(calculateCurrentStreak([
+          new Date('2026-10-09T10:00:00.000Z'),
+        ], new Date('2026-10-12T08:00:00.000Z'))).toBe(1);
+      });
+
+      it('keeps yesterday as the current streak until the next calendar day', () => {
+        expect(calculateStreakAsOf([
+          new Date('2026-10-11T10:00:00.000Z'),
+          new Date('2026-10-10T10:00:00.000Z'),
+        ], new Date('2026-10-12T08:00:00.000Z'))).toBe(2);
+      });
+
+      it('reports no active streak after a missed day', () => {
+        expect(calculateStreakAsOf([
+          new Date('2026-10-09T10:00:00.000Z'),
+        ], new Date('2026-10-12T08:00:00.000Z'))).toBe(0);
+      });
     });
   });
 });

@@ -2,16 +2,20 @@ import { Response, NextFunction } from 'express';
 import { AuthenticatedRequest } from '../middleware/auth.js';
 import { UserRepository, CompletionRepository } from '@touch-grass/db';
 import { UserUpdateProfileSchema } from '@touch-grass/shared';
+import { calculateStreakAsOf } from '@touch-grass/game';
 
 export class UserController {
   static async getMyProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
     const user = req.user!;
     const completedCount = await CompletionRepository.countCompletedByUser(user.id);
+    const completionDates = await CompletionRepository.findCompletionDatesByUser(user.id);
+    const currentStreak = calculateStreakAsOf(completionDates, new Date());
 
     res.status(200).json({
       user,
       stats: {
         completedCount,
+        currentStreak,
       },
     });
   }
@@ -52,13 +56,15 @@ export class UserController {
     }
 
     const completedCount = await CompletionRepository.countCompletedByUser(user.id);
+    const completionDates = await CompletionRepository.findCompletionDatesByUser(user.id);
+    const currentStreak = calculateStreakAsOf(completionDates, new Date());
 
     res.status(200).json({
       touchGrassId: user.touchGrassId,
       username: user.username,
       level: user.level,
       totalXp: user.totalXp,
-      streak: user.streak,
+      streak: currentStreak,
       completedCount,
       createdAt: user.createdAt,
     });

@@ -116,8 +116,8 @@ class ApiClient {
     return this.request<{ user: UserResponse }>('/auth/me');
   }
 
-  async getMyProfile(): Promise<{ user: UserResponse; stats: { completedCount: number } }> {
-    return this.request<{ user: UserResponse; stats: { completedCount: number } }>('/users/me');
+  async getMyProfile(): Promise<{ user: UserResponse; stats: { completedCount: number; currentStreak: number } }> {
+    return this.request<{ user: UserResponse; stats: { completedCount: number; currentStreak: number } }>('/users/me');
   }
 
   logout() {
