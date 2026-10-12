@@ -23,9 +23,11 @@ describeWithMongo('challenge completion transaction (MongoDB integration)', () =
   const userId = new ObjectId();
   const challengeId = new ObjectId();
   const xpReward = 45;
+  let databaseConnected = false;
 
   beforeAll(async () => {
     await connectDatabase({ uri: testMongoUri!, dbName: databaseName });
+    databaseConnected = true;
     await ensureDatabaseIndexes();
 
     const now = new Date();
@@ -66,14 +68,17 @@ describeWithMongo('challenge completion transaction (MongoDB integration)', () =
 
     await getUsersCollection().insertOne(user);
     await getDb().collection<ChallengeDoc>(COLLECTIONS.CHALLENGES).insertOne(challenge);
-  });
+  }, 30_000);
 
   afterAll(async () => {
-    if (testMongoUri) {
-      await getDb().dropDatabase();
+    try {
+      if (databaseConnected) {
+        await getDb().dropDatabase();
+      }
+    } finally {
       await disconnectDatabase();
     }
-  });
+  }, 30_000);
 
   it('awards XP and writes one completion when the same completion is submitted concurrently', async () => {
     const completion: Omit<CompletionDoc, '_id' | 'completedAt'> = {
